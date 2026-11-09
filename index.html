@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AutoMap — Automated thematic maps</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <h1>🗺️ AutoMap</h1>
+    <p class="tagline">Automated thematic maps from admin boundaries</p>
+
+    <section class="panel">
+      <h2>1 · Boundaries</h2>
+      <label>Country
+        <select id="country"><option value="">Loading…</option></select>
+      </label>
+      <label>Admin level
+        <select id="adm">
+          <option value="ADM1">Level 1 (e.g. regions/provinces)</option>
+          <option value="ADM2">Level 2 (e.g. districts/counties)</option>
+          <option value="ADM3">Level 3 (e.g. municipalities)</option>
+        </select>
+      </label>
+      <div id="boundaryStatus" class="status"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2 · Data</h2>
+      <label>Values — one per line: <code>name,value</code>
+        <textarea id="csv" rows="6" placeholder="Nairobi,4200000&#10;Mombasa,1200000"></textarea>
+      </label>
+      <div class="row">
+        <button id="btnRandom" class="mini" type="button">Random demo data</button>
+        <button id="btnApply" type="button">Apply data</button>
+      </div>
+      <div id="matchStatus" class="status"></div>
+    </section>
+
+    <section class="panel">
+      <h2>3 · Style &amp; elements</h2>
+
+      <details open>
+        <summary>Choropleth</summary>
+        <label>Palette
+          <select id="palette">
+            <option value="viridis">Viridis</option>
+            <option value="inferno">Inferno</option>
+            <option value="blues">Blues</option>
+            <option value="greens">Greens</option>
+            <option value="orrd">Orange–Red</option>
+            <option value="ryb">Red–Yellow–Blue</option>
+            <option value="custom">Custom gradient…</option>
+          </select>
+        </label>
+        <div id="customColors" class="row hidden">
+          <label>Min <input type="color" id="cMin" value="#053061"></label>
+          <label>Max <input type="color" id="cMax" value="#f7f7f7"></label>
+        </div>
+        <label>Classification
+          <select id="classification">
+            <option value="quantile">Quantiles</option>
+            <option value="equal">Equal intervals</option>
+            <option value="continuous">Continuous (unclassed)</option>
+          </select>
+        </label>
+        <label>Classes <input type="number" id="classes" min="2" max="9" value="5"></label>
+        <label>No-data colour <input type="color" id="noDataColor" value="#cccccc"></label>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="showLabels"> Show name labels</label>
+        </div>
+      </details>
+
+      <details>
+        <summary>Boundaries</summary>
+        <label>Stroke colour <input type="color" id="strokeColor" value="#333333"></label>
+        <label>Stroke width <input type="range" id="strokeWidth" min="0" max="4" step="0.25" value="1"></label>
+        <label>Fill opacity <input type="range" id="fillOpacity" min="0.1" max="1" step="0.05" value="0.85"></label>
+      </details>
+
+      <details open>
+        <summary>Legend</summary>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="legendOn" checked> Show legend</label>
+        </div>
+        <label>Position
+          <select id="legendPos">
+            <option value="bottomright">Bottom right</option>
+            <option value="bottomleft">Bottom left</option>
+            <option value="topright">Top right</option>
+            <option value="topleft">Top left</option>
+          </select>
+        </label>
+        <label>Title <input type="text" id="legendTitle" placeholder="Legend"></label>
+      </details>
+
+      <details open>
+        <summary>North arrow</summary>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="northOn" checked> Show north arrow</label>
+        </div>
+        <label>Style
+          <select id="northStyle">
+            <option value="arrow">Classic arrow</option>
+            <option value="compass">Compass rose</option>
+            <option value="needle">Half needle</option>
+          </select>
+        </label>
+        <label>Position
+          <select id="northPos">
+            <option value="topright">Top right</option>
+            <option value="topleft">Top left</option>
+            <option value="bottomright">Bottom right</option>
+            <option value="bottomleft">Bottom left</option>
+          </select>
+        </label>
+        <label>Colour <input type="color" id="northColor" value="#222222"></label>
+        <label>Size <input type="range" id="northSize" min="40" max="140" step="4" value="72"></label>
+      </details>
+
+      <details open>
+        <summary>Scale bar</summary>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="scaleOn" checked> Show scale</label>
+        </div>
+        <label>Position
+          <select id="scalePos">
+            <option value="bottomleft">Bottom left</option>
+            <option value="bottomright">Bottom right</option>
+            <option value="topleft">Top left</option>
+            <option value="topright">Top right</option>
+          </select>
+        </label>
+        <div class="row">
+          <label class="chk"><input type="checkbox" id="scaleMetric" checked> Metric</label>
+          <label class="chk"><input type="checkbox" id="scaleImperial"> Imperial</label>
+        </div>
+      </details>
+
+      <details open>
+        <summary>Title &amp; background</summary>
+        <label>Map title <input type="text" id="mapTitle" placeholder="My thematic map"></label>
+        <label>Subtitle <input type="text" id="mapSubtitle" placeholder="Source / date"></label>
+        <label>Title size <input type="range" id="titleSize" min="12" max="32" step="1" value="20"></label>
+        <label>Background
+          <select id="background">
+            <option value="none">Plain</option>
+            <option value="osm">Street map (OSM)</option>
+          </select>
+        </label>
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2>4 · Export</h2>
+      <button id="btnExport" type="button">⬇ Export PNG</button>
+      <p class="hint">Boundaries © geoBoundaries (CC BY 4.0) — keep the attribution.</p>
+    </section>
+  </aside>
+
+  <main id="mapWrap">
+    <div id="map"></div>
+    <div id="loading" class="hidden">Loading boundaries…</div>
+  </main>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="countries.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
